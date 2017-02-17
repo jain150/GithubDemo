@@ -10,15 +10,43 @@ import UIKit
 import MBProgressHUD
 
 // Main ViewController
-class RepoResultsViewController: UIViewController {
+class RepoResultsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    @IBOutlet weak var tableView: UITableView!
 
     var searchBar: UISearchBar!
     var searchSettings = GithubRepoSearchSettings()
 
-    var repos: [GithubRepo]!
+    var repos: [GithubRepo] = []
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return repos.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "RepoCell", for: indexPath) as! RepoCell
+        
+        let repo = repos[indexPath.row]
+        cell.titleLabel.text = repo.name
+        cell.usernameLabel.text = "by " + repo.ownerHandle!
+        cell.starsLabel.text = "\(repo.stars!)"
+        cell.forkLabel.text = "\(repo.forks!)"
+        cell.descriptionLabel.text = repo.repoDescription
+        cell.imgView.setImageWith(URL(string: repo.ownerAvatarURL!)!)
+        
+        
+        
+        return cell
+        
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.estimatedRowHeight = 100
+        tableView.rowHeight = UITableViewAutomaticDimension
+        
 
         // Initialize the UISearchBar
         searchBar = UISearchBar()
@@ -43,7 +71,11 @@ class RepoResultsViewController: UIViewController {
             // Print the returned repositories to the output window
             for repo in newRepos {
                 print(repo)
-            }   
+            }
+            
+            self.repos = newRepos
+            
+            self.tableView.reloadData()
 
             MBProgressHUD.hide(for: self.view, animated: true)
             }, error: { (error) -> Void in
@@ -51,6 +83,8 @@ class RepoResultsViewController: UIViewController {
         })
     }
 }
+
+
 
 // SearchBar methods
 extension RepoResultsViewController: UISearchBarDelegate {
